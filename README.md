@@ -10,32 +10,36 @@ python_project/
     api/
       v1/
         endpoints/
+          auth.py
           users.py
         api.py
-      __init__.py
       deps.py
     core/
       config.py
-      __init__.py
-    crud/
-      user.py
-      __init__.py
+      rate_limiter.py
+      security.py
     db/
       base.py
       base_class.py
       session.py
-      __init__.py
+    main.py
     models/
       user.py
-      __init__.py
+    repositories/
+      user_repository.py
     schemas/
-      user.py
+      login.py
       otp.py
-      __init__.py
-    __init__.py
-    main.py
-  __init__.py
-  .env.example
+      token.py
+      user.py
+    services/
+      auth_service.py
+      user_service.py
+    utils/
+      cors.py
+      email.py
+      logger.py
+      otp.py
   requirements.txt
   README.md
 ```
