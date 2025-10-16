@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+# FastAPI / Uvicorn
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.vscode/
+# Logs
+*.log
+# IDEs
+.idea/
+.DS_Store
