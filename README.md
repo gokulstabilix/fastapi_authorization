@@ -135,14 +135,14 @@ python_project/
 ### Running the Application
 
 ```powershell
-uvicorn authorization_service.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn authorization_service.main:app  --reload
 ```
 
 This will start the FastAPI application, typically accessible at `http://127.0.0.1:8000`. The `--reload` flag enables auto-reloading on code changes.
 
 ## API Endpoints
 
-The API documentation (Swagger UI) is available at `http://127.0.0.1:8000/docs` and ReDoc at `http://127.0.0.1:8000/redoc`.
+The API documentation (Swagger UI) is available at `http://127.0.0.1:8000/docs` .
 
 ### Authentication
 
@@ -200,15 +200,6 @@ The API documentation (Swagger UI) is available at `http://127.0.0.1:8000/docs` 
 
 ## Notes
 
-*   **Database Migrations:** Tables are auto-created on startup via `Base.metadata.create_all`. For existing databases, new columns for OTP verification must be added via migration. Example (PostgreSQL):
-    ```sql
-    ALTER TABLE users
-      ADD COLUMN IF NOT EXISTS is_email_verified boolean NOT NULL DEFAULT false,
-      ADD COLUMN IF NOT EXISTS email_otp_hash varchar(255),
-      ADD COLUMN IF NOT EXISTS email_otp_expires_at timestamptz,
-      ADD COLUMN IF NOT EXISTS email_otp_attempts integer NOT NULL DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS email_otp_last_sent_at timestamptz;
-    ```
 *   **Password Hashing:** Passwords are hashed using bcrypt via `passlib`.
 *   **OTP Configuration:** OTP resend window, length, and maximum attempts are configurable via `.env` variables (`EMAIL_OTP_*`).
 *   **Rate Limiting:** Configurable in `.env` (`RATE_LIMIT_*`).
