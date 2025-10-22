@@ -52,6 +52,13 @@ class Settings(BaseSettings):
     DATABASE_POOL_TIMEOUT: int = 30
     DATABASE_POOL_RECYCLE: int = 3600
 
+    # Minio settings
+    MINIO_ENDPOINT: str
+    MINIO_ACCESS_KEY: str
+    MINIO_SECRET_KEY: str
+    MINIO_SECURE: bool = False
+    MINIO_BUCKET_NAME: str
+
     model_config = SettingsConfigDict(
         env_file=str(ENV_FILE), 
         env_file_encoding="utf-8", 

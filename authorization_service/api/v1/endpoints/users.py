@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import io
+import mimetypes
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile
+from fastapi.responses import FileResponse, StreamingResponse # Import FileResponse
 from sqlalchemy.orm import Session
 
 from authorization_service.api.deps import get_db, get_current_user
@@ -7,6 +10,7 @@ from authorization_service.services.user_service import UserService
 from authorization_service.core.rate_limiter import get_redis_client
 from authorization_service.core.config import settings
 from authorization_service.utils.logger import logger
+from authorization_service.services.minio_service import MinioService  # Import MinioService
 
 router = APIRouter()
 
@@ -58,3 +62,59 @@ def read_users_me(current_user=Depends(get_current_user)):
         logger.info(f"User profile for {user_id} stored in cache for {settings.REDIS_CACHE_EXPIRE_SECONDS} seconds")
 
     return user_profile
+
+
+@router.post("/users/upload-file")
+async def upload_user_file(
+    file: UploadFile,
+    current_user=Depends(get_current_user)
+):
+    minio_service = MinioService()
+    try:
+        file_data = await file.read()
+        object_name = f"user-files/{current_user.id}/{file.filename}"
+        result = await minio_service.upload_file(object_name, file_data, file.content_type)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload file: {e}")
+
+
+@router.get("/users/download-file/{object_name}") 
+async def download_user_file(
+    object_name: str,
+    current_user=Depends(get_current_user)
+):
+    minio_service = MinioService()
+    try:
+        full_object_name = f"user-files/{current_user.id}/{object_name}"
+        file_content = await minio_service.download_file(full_object_name)
+
+        # Determine MIME type based on file extension
+        mime_type, _ = mimetypes.guess_type(object_name)
+        if mime_type is None:
+            mime_type = "application/octet-stream"  # fallback
+
+        return StreamingResponse(
+            io.BytesIO(file_content),
+            media_type=mime_type,
+            headers={"Content-Disposition": f"attachment; filename={object_name}"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to download file: {e}")
+
+
+
+
+@router.delete("/users/delete-file/{object_name}")
+async def delete_user_file(
+    object_name: str,
+    current_user=Depends(get_current_user)
+):
+    minio_service = MinioService()
+    try:
+        # Construct the full object name including the user's ID
+        full_object_name = f"user-files/{current_user.id}/{object_name}"
+        result = await minio_service.delete_file(full_object_name)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete file: {e}")
