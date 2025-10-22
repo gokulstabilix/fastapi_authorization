@@ -54,6 +54,7 @@ python_project/
       user.py                   # User schemas
     services/                   # Business logic layer
       auth_service.py           # Authentication-related business logic
+      minio_service.py          # Minio related business logic
       user_service.py           # User-related business logic
     utils/                      # Utility functions
       cors.py                   # CORS configuration
