@@ -79,25 +79,39 @@ async def upload_user_file(
         raise HTTPException(status_code=500, detail=f"Failed to upload file: {e}")
 
 
-@router.get("/users/download-file/{object_name}") 
+@router.get("/users/download-file/{file_name}") 
 async def download_user_file(
-    object_name: str,
+    file_name: str,
     current_user=Depends(get_current_user)
 ):
     minio_service = MinioService()
     try:
-        full_object_name = f"user-files/{current_user.id}/{object_name}"
+        full_object_name = f"user-files/{current_user.id}/{file_name}"
         file_content = await minio_service.download_file(full_object_name)
 
         # Determine MIME type based on file extension
-        mime_type, _ = mimetypes.guess_type(object_name)
+        mime_type, _ = mimetypes.guess_type(file_name)
+
+        # Explicitly handle common image types if guess_type returns generic octet-stream
+        if mime_type == "application/octet-stream":
+            lower_file_name = file_name.lower()
+            if lower_file_name.endswith((".png", ".jpg", ".jpeg")):
+                if lower_file_name.endswith(".png"):
+                    mime_type = "image/png"
+                elif lower_file_name.endswith((".jpg", ".jpeg")):
+                    mime_type = "image/jpeg"
+        
         if mime_type is None:
             mime_type = "application/octet-stream"  # fallback
+
+        content_disposition = f"attachment; filename={file_name}"
+        if mime_type.startswith("image/"):
+            content_disposition = f"inline; filename={file_name}"
 
         return StreamingResponse(
             io.BytesIO(file_content),
             media_type=mime_type,
-            headers={"Content-Disposition": f"attachment; filename={object_name}"}
+            headers={"Content-Disposition": content_disposition}
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to download file: {e}")
